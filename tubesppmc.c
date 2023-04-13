@@ -1,6 +1,7 @@
 #include <stdint.h> // to use uint32_t
 // represent integer values ranging from 0 to 2^32 - 1
 #include <stdio.h>
+#include <string.h>
 
 /* take 64 bits of data in v[0] and v[1] and 128 bits of key[0] - key[3] */
 
@@ -27,21 +28,36 @@ void decipher(unsigned int pengulangan, uint32_t v[2], uint32_t const key[4]) {
 }
 
 int main(){
-    // Exaple plaintext and key
-    uint32_t plaintext[2] = {0x01234567, 0x89ABCDEF}; // 64-bit plaintext
+    uint32_t plaintext[2];
     uint32_t key[4] = {0xA56BABCD, 0x56781234, 0xDEF91234, 0x12345678}; // 128-bit key
+    int pengulangan;
+
+    // Get plaintext from user input
+    char buffer[17];
+    printf("      ==== E-VOTING ====       \n");
+    printf(" ==== LUBERJUDIL MANTAP ====  \n");
+    printf("==== Masuk ke dalam Akun Voting ====\n\n");
+    printf("Masukkan Password Anda: ");
+    printf("Masukkan plaintext : ");
+    scanf("%16s", buffer);
+    sscanf(buffer, "%8X%8X", &plaintext[0], &plaintext[1]);
 
     // Print plaintext and key
     printf("Plaintext: %08X%08X\n", plaintext[0], plaintext[1]);
     printf("Key:       %08X%08X%08X%08X\n", key[0], key[1], key[2], key[3]);
 
+    // Get the number of rounds from user input
+    printf("Masukkan jumlah putaran: ");
+    scanf("%d", &pengulangan);
+
     // Encrypt plaintext
-    encipher(32, plaintext, key);
+    encipher(pengulangan, plaintext, key);
 
     // Print ciphertext
     printf("Hasil encrypt: %08X%08X\n", plaintext[0], plaintext[1]);
 
-    decipher(32, plaintext, key);
+    // Decrypt ciphertext
+    decipher(pengulangan, plaintext, key);
     printf("Hasil Decrypt: %08X%08X\n", plaintext[0], plaintext[1]);
     return 0;
 }
