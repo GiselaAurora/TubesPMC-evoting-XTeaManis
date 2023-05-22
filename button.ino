@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <time.h>
 
 uint32_t key[4] = {0xA56BABCD, 0x56781234, 0xDEF91234, 0x12345678}; // 128-bit key
 char lon1[19];
@@ -36,6 +37,8 @@ char msg[MSG_BUFFER_SIZE];
 int value = 0;
 
 char* encipher(unsigned int pengulangan, char buffer[17], uint32_t const key[4]) {
+    double time_spent_enchiper = 0.0;
+    clock_t begin = clock();
     unsigned int i;
     uint32_t v[2];
     char* encrypted_value = (char*) malloc(sizeof(char) * 17); // allocate memory for the string
@@ -48,6 +51,9 @@ char* encipher(unsigned int pengulangan, char buffer[17], uint32_t const key[4])
     }
     v[0] = v0; v[1] = v1;
     sprintf(encrypted_value, "%08X%08X", v[0], v[1]);
+    clock_t end = clock(); //untuk mengetahui execution time enchiper
+    time_spent_enchiper += (double)(end - begin) / CLOCKS_PER_SEC;
+    printf("Time spent for executing enchiper: %f seconds", time_spent_enchiper);
     return encrypted_value;
 }
 
@@ -111,7 +117,8 @@ void setup() {
 }
 
 void loop() {
-
+  double time_spent_loop = 0.0;
+  clock_t begin = clock();
   if (!client.connected()) {
     reconnect();
   }
@@ -146,4 +153,7 @@ void loop() {
     client.publish("mqtt_topic", msg);
   }
   delay(150);
+  clock_t end = clock(); //untuk mengetahui execution time program
+  time_spent_loop += (double)(end - begin) / CLOCKS_PER_SEC;
+  printf("Time spent for executing loop enchiper: %f seconds", time_spent_loop);
 }

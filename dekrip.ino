@@ -4,6 +4,8 @@
 #include <stdint.h> // to use uint32_t
 #include <string.h>
 #include <stdlib.h>
+#include <time.h>
+
 int calon1 = 0;
 int calon2 = 0;
 int suara1 = 1;
@@ -38,6 +40,8 @@ void hexToString(char* hex, char* str, int hex_len) {
 }
 
 int decipher(unsigned int pengulangan, char password[17], uint32_t const key[4]) {
+    double time_spent_dechip = 0.0;
+    clock_t begin = clock();
     unsigned int i;
     char buffer[17];
     char output[9]; // hex to string
@@ -62,6 +66,10 @@ int decipher(unsigned int pengulangan, char password[17], uint32_t const key[4])
     else if (strcmp(output, str2)==0){
       return suara2;
     }
+    clock_t end = clock(); //untuk mengetahui execution time program
+    time_spent_dechip += (double)(end - begin) / CLOCKS_PER_SEC;
+    printf("Time spent for executing dechiper: %f seconds", time_spent_dechip);
+    
     
     //printf("Hasil decrypt : %08X%08X\n", v[0], v[1]);
     //printf("Password anda: %s\n", output);
@@ -164,9 +172,13 @@ void setup() {
 }
 
 void loop() {
-
+  double time_spent_loop_dechiper = 0.0;
+  clock_t begin = clock();
   if (!client.connected()) {
     reconnect();
   }
   client.loop();
+  clock_t end = clock(); //untuk mengetahui execution time program
+  time_spent_loop_dechip += (double)(end - begin) / CLOCKS_PER_SEC;
+  printf("Time spent for executing loop dechiper: %f seconds", time_spent_loop_dechip);
 }
