@@ -5,7 +5,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
-#include <time.h>
+#include <time.h> 
+#include <esp32-hal-psram.h>
 
 uint32_t key[4] = {0xA56BABCD, 0x56781234, 0xDEF91234, 0x12345678}; // 128-bit key
 char lon1[19];
@@ -37,11 +38,14 @@ char msg[MSG_BUFFER_SIZE];
 int value = 0;
 
 char* encipher(unsigned int pengulangan, char buffer[17], uint32_t const key[4]) {
-    double time_spent_enchiper = 0.0;
-    clock_t begin = clock();
     unsigned int i;
     uint32_t v[2];
+
+    // Measure heap usage before encryption
+    uint32_t freeHeapBytesBefore = ESP.getFreeHeap();
+    uint32_t totalHeapBytesBefore = ESP.getHeapSize();
     char* encrypted_value = (char*) malloc(sizeof(char) * 17); // allocate memory for the string
+
     sscanf(buffer, "%8X%8X", &v[0], &v[1]); 
     uint32_t v0 = v[0], v1 = v[1], sum = 0, delta = 0x9E3779B9;
     for (i = 0; i < pengulangan; i++) {
@@ -51,9 +55,15 @@ char* encipher(unsigned int pengulangan, char buffer[17], uint32_t const key[4])
     }
     v[0] = v0; v[1] = v1;
     sprintf(encrypted_value, "%08X%08X", v[0], v[1]);
-    clock_t end = clock(); //untuk mengetahui execution time enchiper
-    time_spent_enchiper += (double)(end - begin) / CLOCKS_PER_SEC;
-    printf("Time spent for executing enchiper: %f seconds", time_spent_enchiper);
+    // Measure heap usage after encryption
+    uint32_t freeHeapBytesAfter = ESP.getFreeHeap();
+    uint32_t totalHeapBytesAfter = ESP.getHeapSize();
+
+    // Calculate heap usage
+    uint32_t heapUsageBytes = (totalHeapBytesAfter - freeHeapBytesAfter) - (totalHeapBytesBefore - freeHeapBytesBefore);
+
+    // Print heap usage
+    printf("Encryption Heap Usage: %d bytes\n", heapUsageBytes);
     return encrypted_value;
 }
 
@@ -117,8 +127,7 @@ void setup() {
 }
 
 void loop() {
-  double time_spent_loop = 0.0;
-  clock_t begin = clock();
+
   if (!client.connected()) {
     reconnect();
   }
@@ -141,10 +150,27 @@ void loop() {
 
   if (calon1 == HIGH && calon2 == LOW){
     //snprintf("Voting untuk Pak Ogin");
+    clock_t start_encryption = clock();
     snprintf (msg, MSG_BUFFER_SIZE, "%s", encipher(32, lon1, key));
+    clock_t end_encryption = clock();
+    double encryption_time = (double)(end_encryption - start_encryption) / CLOCKS_PER_SEC;
     Serial.println(msg);
     client.publish("mqtt_topic", msg);
+    printf("Encryption Time: %f seconds\n", encryption_time);printf("\n");
   }
+
+  else if (calon1 == LOW && calon2 == HIGH){
+    //snprintf("Voting untuk Kak Gota");
+    clock_t start_encryption = clock();
+    snprintf (msg, MSG_BUFFER_SIZE, "%s", encipher(32, lon2, key));
+    clock_t end_encryption = clock();
+    double encryption_time = (double)(end_encryption - start_encryption) / CLOCKS_PER_SEC;
+    Serial.println(msg);
+    client.publish("mqtt_topic", msg);
+    printf("Encryption Time: %f seconds\n", encryption_time);printf("\n");
+  }
+  delay(150);
+}
 
   else if (calon1 == LOW && calon2 == HIGH){
     //snprintf("Voting untuk Kak Gota");
